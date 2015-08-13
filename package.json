@@ -1,0 +1,50 @@
+{
+  "name": "direct-delivery-importer",
+  "version": "1.0.1",
+  "description": "Data integration middleware for Direct Delivery",
+  "main": "index.js",
+  "bin": {
+    "dumpsheet": "./bin/dumpsheet.js",
+    "worksheet2id": "./bin/worksheet2id.js"
+  },
+  "scripts": {
+    "postinstall": "mkdir -p logs",
+    "test": "NODE_ENV=example mocha",
+    "watch": "NODE_ENV=example mocha --watch"
+  },
+  "keywords": [
+    "dd",
+    "delivery",
+    "ehealth"
+  ],
+  "author": "eHealth Africa",
+  "license": "All rights reserved",
+  "devDependencies": {
+    "eslint": "^0.13.0",
+    "eslint-plugin-mocha": "^0.2.2",
+    "mocha": "^2.1.0",
+    "should": "^4.6.3",
+    "underscore": "^1.8.3"
+  },
+  "dependencies": {
+    "bluebird": "^2.9.6",
+    "edit-google-spreadsheet": "^0.2.16",
+    "js-yaml": "^3.2.5",
+    "moment": "^2.9.0",
+    "pouchdb": "~3.4.0",
+    "sinon": "^1.12.2",
+    "log4js": "~0.6.16"
+  },
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eHealthAfrica/direct-delivery-importer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/eHealthAfrica/direct-delivery-importer/issues"
+  },
+  "homepage": "https://github.com/eHealthAfrica/direct-delivery-importer"
+}

@@ -1,0 +1,127 @@
+# Mapping metadata
+facilityDBUrl:  http://adminusername:adminpass@dbserver-url/facilities
+appConfigDBUrl: http://adminusername:adminpass@dbserver-url/app_config
+directDeliveryUrl: http://adminusername:adminpass@dbserver-url/direct-delivery-db-name
+roundId: KN-28-2015
+facilityMapping:
+  'VDD-FAC-ID': 'MOVE_FACILITY_ID'
+
+# A mapping of VDD and Move Product Types
+product:
+  types:
+    BCG:
+      name: BCG
+      field: productID
+      presentation: 20
+      baseUOM: Doses
+      moveId: e55e1452-b0ab-4046-9d7e-3a98f1f968d0
+      storageID: product-storage/frozen
+    MV:
+      name: MV
+      field: productID
+      presentation: 10
+      moveId: 00f987e4-54e1-46f0-820b-b249a6d38759
+      baseUOM: Doses
+      storageID: product-storage/frozen
+    YF:
+      name: YF
+      field: productID
+      presentation: 10
+      moveId: 19e16c20-04b7-4e06-a679-7f7b60d976be
+      baseUOM: Doses
+      storageID: product-storage/frozen
+    OPV:
+      name: OPV
+      field: productID
+      presentation: 10
+      moveId: db513859-4491-4db7-9343-4980a16c8b04
+      baseUOM: Doses
+      storageID: product-storage/frozen
+    IPV:
+      name: IPV
+      field: productID
+      presentation: 10
+      moveId: ipv
+      baseUOM: Doses
+      storageID: product-storage/refrigerator
+    TT:
+      name: TT
+      field: productID
+      presentation: 10
+      moveId: 939d5e05-2aa4-4883-9246-35c60dfa06a5
+      baseUOM: Doses
+      storageID: product-storage/refrigerator
+    Penta:
+      name: Penta
+      field: productID
+      presentation: 10
+      moveId: 1203c362-b7a8-499a-b7ba-b842bace7920
+      baseUOM: Doses
+      storageID: product-storage/refrigerator
+    HBV:
+      name: HBV
+      field: productID
+      presentation: 10
+      moveId: 0930b906-4802-4a65-8516-057bd839db3e
+      baseUOM: Doses
+      storageID: product-storage/refrigerator
+    'YF Dil':
+      name: YF Dil
+      field: productID
+      presentation: 1
+      baseUOM: Units
+      storageID: product-storage/refrigerator
+    'MV Dil':
+      name: MV Dil
+      field: productID
+      presentation: 1
+      baseUOM: Units
+      storageID: product-storage/refrigerator
+    'BCG Dil':
+      name: BCG Dil
+      field: productID
+      presentation: 1
+      baseUOM: Units
+      storageID: product-storage/refrigerator
+    '0.05ml':
+      name: 0.05ml
+      field: productID
+      presentation: 1
+      baseUOM: Units
+      storageID: product-storage/dry
+    '0.5ml':
+      name: 0.5ml
+      field: productID
+      presentation: 1
+      baseUOM: Units
+      storageID: product-storage/dry
+    'RC 2ml':
+      name: RC 2ml
+      field: productID
+      presentation: 1
+      baseUOM: Units
+      storageID: product-storage/dry
+    'RC 5ml':
+      name: RC 5ml
+      field: productID
+      presentation: 1
+      baseUOM: Units
+      storageID: product-storage/dry
+    'Safety Boxes':
+      name: Safety Boxes
+      field: productID
+      presentation: 1
+      baseUOM: Units
+      storageID: product-storage/dry
+    'Droppers':
+      name: Droppers
+      field: productID
+      presentation: 1
+      baseUOM: Units
+      storageID: product-storage/dry
+    'Cards':
+      name: Cards
+      field: productID
+      presentation: 1
+      baseUOM: Units
+      storageID: product-storage/dry

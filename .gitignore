@@ -1,0 +1,10 @@
+node_modules
+config/*
+!config/example
+!config/index.js
+npm-debug.log
+test/fixtures/private
+bin/private
+.idea
+PENDING_SYNC
+logs
