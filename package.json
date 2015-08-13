@@ -1,11 +1,10 @@
 {
-  "name": "direct-delivery-importer",
-  "version": "1.0.1",
-  "description": "Data integration middleware for Direct Delivery",
+  "name": "allocation-sync",
+  "version": "1.0.0",
+  "description": "VDD and Move Allocation sync script",
   "main": "index.js",
   "bin": {
-    "dumpsheet": "./bin/dumpsheet.js",
-    "worksheet2id": "./bin/worksheet2id.js"
+    "dumpsheet": "./bin/sync.js"
   },
   "scripts": {
     "postinstall": "mkdir -p logs",
@@ -14,11 +13,11 @@
   },
   "keywords": [
     "dd",
-    "delivery",
+    "allocation",
     "ehealth"
   ],
-  "author": "eHealth Africa",
-  "license": "All rights reserved",
+  "author": "Jideobi Ofomah",
+  "license": "Apache Lincence",
   "devDependencies": {
     "eslint": "^0.13.0",
     "eslint-plugin-mocha": "^0.2.2",
@@ -41,10 +40,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/eHealthAfrica/direct-delivery-importer.git"
+    "url": "https://github.com/jofomah/allocation-sync.git"
   },
   "bugs": {
-    "url": "https://github.com/eHealthAfrica/direct-delivery-importer/issues"
+    "url": "https://github.com/jofomah/allocation-sync/issues"
   },
-  "homepage": "https://github.com/eHealthAfrica/direct-delivery-importer"
+  "homepage": "https://github.com/jofomah/allocation-sync"
 }
