@@ -7,6 +7,11 @@ var _ = require('underscore');
 var logger = require('../lib/log');
 var pouchWrapper = require('../lib/db');
 var config = require('../config');
+var utility = require('../lib/utility');
+var allocationMod = require('../lib/allocation');
+var fixture = require('../lib/fixture-parser');
+var facilityRegistry = require('../lib/facility-registry');
+
 
 //config info
 var facilityDBUrl = config.mapping.facilityDBUrl;
@@ -15,7 +20,6 @@ var ddDBUrl = config.mapping.directDeliveryUrl;
 var productTypeMap = config.mapping.product.types;
 var VDD_MOVE_FACILITY_MAP = config.mapping.facilityMapping;
 var roundId = config.mapping.roundId;
-
 
 
 function log(response) {
@@ -27,78 +31,15 @@ function handleError(error) {
 	logger.error(error);
 }
 
-function isFacility(fac) {
-	return (_.isString(fac.name) && _.isString(fac.zone) && _.isString(fac.ward) && _.isString(fac.id) && fac.id !== '');
-}
-
 function getByRound(dbUrl, roundId) {
-	logger.info('Reading Facility Information from Round ID : ' + roundId);
-
+	logger.info('Reading facility allocation from', dbUrl, ' for Round ID : ', roundId);
 	var view = 'daily-deliveries/by-round';
 	var params = {
 		key: roundId,
 		include_docs: true
 	};
-
 	return pouchWrapper.query(dbUrl, view, params);
 }
-
-function generateAllocation(packedProducts, pTypeMap) {
-	var pt;
-	var allocations = [];
-	for (var i in packedProducts) {
-		pt = packedProducts[i];
-		var alloc = {
-			productType: pt.productID,
-			max: pt.expectedQty,
-			baseUOM: pt.baseUOM,
-			moveId: pTypeMap[pt.productID].moveId
-		};
-		allocations.push(alloc);
-	}
-	return allocations;
-}
-
-function getSourceRefs(link){
-	var strs = link.split('@');
-	var endStr = strs[1];
-	var startStr = strs[0].split(':');
-	startStr = [ startStr[0] ,  '//'].join(':');
-	return [ startStr, endStr].join('');
-}
-
-function convertToRegistryFormat(docId, fr, DD_LOMIS_HF_MAP) {
-	var ddId = fr.facility.id.split(' ').join('-');
-	var moveHfId = DD_LOMIS_HF_MAP[ddId] || '';
-
-	var facDoc = {
-		doc_type: 'facility-registry',
-		_id: ddId,
-		active: true,
-		properties: {},
-		identifiers: []
-	};
-	facDoc.name = fr.facility.name;
-	facDoc.location = {
-		ward: fr.facility.ward,
-		lga: fr.facility.lga,
-		zone: fr.facility.zone
-	};
-	facDoc.identifiers = [
-		{ agency: 'EHA', context: 'move', id: moveHfId },
-		{ agency: 'EHA', context: 'vdd', id: ddId },
-		{ agency: 'EHA', context: 'kano-connect', id: '' }
-	];
-
-	var link = [ getSourceRefs(ddDBUrl), docId, fr.id ].join('/');
-	facDoc.source = {
-		href: link,
-		importedAt: new Date().toISOString()
-	};
-
-	return facDoc;
-}
-
 
 function extractInfo(resp) {
 	logger.info('Extracting Facility Information');
@@ -106,7 +47,6 @@ function extractInfo(resp) {
 	var index = docs.length;
 	var DELIVERY_DOC_TYPE = 'dailyDelivery';
 	var doc;
-	var facilityList = [];
 	var processed = {};
 	var allocationByFacility = {};
 	while (index--) {
@@ -115,24 +55,24 @@ function extractInfo(resp) {
 			var fr;
 			for (var i in doc.facilityRounds) {
 				fr = doc.facilityRounds[i];
-				if (isFacility(fr.facility) && fr.packedProduct) {
+				if (facilityRegistry.isFacility(fr.facility) && fr.packedProduct) {
 					var ddId = fr.facility.id.replace(' ', '-');
 					if (!processed[ddId]) {
-
-						var facRegistry = convertToRegistryFormat(doc._id, fr, VDD_MOVE_FACILITY_MAP);
-						var moveHfId = getFacilityIdBy(facRegistry.identifiers, 'move');
-						allocationByFacility[moveHfId] = generateAllocation(fr.packedProduct, productTypeMap);
-						facilityList.push(facRegistry);
+						var facRegistry = facilityRegistry.convertToRegistryFormat(doc._id, fr, VDD_MOVE_FACILITY_MAP, ddDBUrl);
+						var moveHfId = facilityRegistry.getIdBy(facRegistry.identifiers, 'move');
+						allocationByFacility[moveHfId] = allocationMod.collateAllocation(fr.packedProduct, productTypeMap);
 						processed[ddId] = true;
 					}
 				}
 			}
 		}
 	}
-	return {
-		facilityList: facilityList,
-		allocationByFacility: allocationByFacility
-	};
+
+	var facilityAllocations = fixture.toAllocation('allocation.json');
+	allocationByFacility = fixture.getAllocations(facilityAllocations, allocationByFacility);
+
+
+	return allocationByFacility;
 }
 
 function writeToCouchDB(response) {
@@ -148,8 +88,8 @@ function writeToCouchDB(response) {
 		}
 	};
 	var appConfigDB = pouchWrapper.createDB(appConfigDBUrl, options);
-	var facilityDB =  pouchWrapper.createDB(facilityDBUrl, options);
-	console.log();
+	var facilityDB = pouchWrapper.createDB(facilityDBUrl, options);
+
 	return bluebird
 			.props({
 				appConfig: appConfigDB.bulkDocs(response.appConfigs),
@@ -157,13 +97,13 @@ function writeToCouchDB(response) {
 			});
 }
 
-function loadFacilityAndAppConfig(){
+function loadFacilityAndAppConfig() {
 	return bluebird
 			.props({
 				facility: pouchWrapper.all(facilityDBUrl),
 				appConfig: pouchWrapper.all(appConfigDBUrl)
 			})
-			.then(function(res){
+			.then(function (res) {
 				var facilities = pouchWrapper.pluck(res.facility.rows, 'doc');
 				var appConfig = pouchWrapper.pluck(res.appConfig.rows, 'doc');
 				return {
@@ -173,94 +113,39 @@ function loadFacilityAndAppConfig(){
 			});
 }
 
-function hashBy(appConfigs, facilities){
-	var appCfgHash = {};
-	var facilityHash = {};
-
-	var appCfg;
-	for (var i in appConfigs) {
-		appCfg = appConfigs[i];
-		if(appCfg.facility && appCfg.facility._id){
-			var facilityId = appCfg.facility._id;
-			appCfgHash[facilityId] = appCfg;
-		}
-	}
-	//hash facility
-	var facility;
-	for(var i in facilities){
-		facility = facilities[i];
-		if(facility && facility._id){
-			facilityHash[facility._id] = facility;
-		}
-	}
-
-	return {
-		appConfig: appCfgHash,
-		facility: facilityHash
-	};
-}
-
-function getFacilityIdBy(identifiers, context){
-	var id;
-  if(identifiers){
-	  for(var i in identifiers){
-		  var identifier = identifiers[i];
-		  if(identifier && identifier.context === context){
-			  id = identifier.id;
-			  break;
-		  }
-	  }
-  }
-	return id;
-}
-
-function getAllocationBy(moveDDProductMap, ddAllocations){
-	var allocations = [];
-	var ddAlloc;
-	for(var i in ddAllocations){
-		ddAlloc = ddAllocations[i];
-		var ddPtype = moveDDProductMap[ddAlloc.productType];
-		if(ddPtype && ddPtype.moveId){
-			ddAlloc.productType = ddPtype.moveId;
-			allocations.push(ddAlloc);
-		}
-	}
-	return allocations;
-}
-
-function UpdateAllocation(result){
-	var docs = result.facilityList;
-	var allocationByFacility = result.allocationByFacility;
-
+function UpdateAllocation(allocationByFacility) {
 	return loadFacilityAndAppConfig()
-			.then(function(result){
-				var hash = hashBy(result.appConfigs, result.facilities);
+			.then(function (result) {
+
+				var hash = utility.hashBy(result.appConfigs, result.facilities);
 				var appConfigHash = hash.appConfig;
 				var facilityHash = hash.facility;
-
-				var doc;
 				var appConfigs = [];
 				var facilities = [];
-        var type = 'move';
-				for(var i in docs){
-					doc = docs[i];
-					var fRegId = getFacilityIdBy(doc.identifiers, type);
-					var appCfg = appConfigHash[fRegId];
-					var fac = facilityHash[fRegId];
 
-					if(fRegId && appCfg && fac && appCfg.facility && appCfg.facility.selectedProductProfiles){
+				var alloc;
+				for (var facId in allocationByFacility) {
+					alloc = allocationByFacility[facId];
+					var appCfg = appConfigHash[facId];
+					var fac = facilityHash[facId];
+					if (appCfg && fac && appCfg.facility) {
 						var facilityAlloc = allocationByFacility[fac._id];
-						if(facilityAlloc){
-							var allocation = getAllocationBy(productTypeMap, facilityAlloc);
-							if(!_.isEmpty(allocation)){
+						if (facilityAlloc) {
+							var allocation = allocationMod.toMoveAllocation(facilityAlloc);
+							if (!_.isEmpty(allocation)) {
 								appCfg.facility.allocation = allocation;
 								fac.allocation = allocation;
 								appConfigs.push(appCfg);
 								facilities.push(fac);
 							}
+						} else {
+							logger.info('No Allocation for ', facId);
 						}
+					} else {
+						logger.info('Missing facility or app config', facId);
 					}
 				}
+
 				return {
 					appConfigs: appConfigs,
 					facilities: facilities
