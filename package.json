@@ -27,12 +27,13 @@
   },
   "dependencies": {
     "bluebird": "^2.9.6",
+    "cjson": "^0.3.1",
     "edit-google-spreadsheet": "^0.2.16",
     "js-yaml": "^3.2.5",
+    "log4js": "~0.6.16",
     "moment": "^2.9.0",
     "pouchdb": "~3.4.0",
-    "sinon": "^1.12.2",
-    "log4js": "~0.6.16"
+    "sinon": "^1.12.2"
   },
   "directories": {
     "doc": "docs",
