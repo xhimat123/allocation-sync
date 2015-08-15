@@ -8,3 +8,4 @@ bin/private
 .idea
 PENDING_SYNC
 logs
+fixtures/*
