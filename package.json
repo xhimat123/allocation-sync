@@ -7,7 +7,7 @@
     "dumpsheet": "./bin/sync.js"
   },
   "scripts": {
-    "postinstall": "mkdir -p logs",
+    "postinstall": "mkdir -p logs fixtures",
     "test": "NODE_ENV=example mocha",
     "watch": "NODE_ENV=example mocha --watch"
   },

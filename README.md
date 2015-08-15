@@ -4,7 +4,7 @@
 
 ## Quick start
 
-Copy the example config and fill out its values.
+Copy the example config and fill out its values and if you have fixtures add it to /fixtures/allocations.json.
 
 ```shell
 ./bin/sync.js
