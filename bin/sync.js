@@ -22,6 +22,7 @@ var VDD_MOVE_FACILITY_MAP = config.mapping.facilityMapping;
 var roundId = config.mapping.roundId;
 
 
+
 function log(response) {
 	var msg = JSON.stringify(response);
 	logger.info(msg);
@@ -56,10 +57,9 @@ function extractInfo(resp) {
 			for (var i in doc.facilityRounds) {
 				fr = doc.facilityRounds[i];
 				if (facilityRegistry.isFacility(fr.facility) && fr.packedProduct) {
-					var ddId = fr.facility.id.replace(' ', '-');
-					if (!processed[ddId]) {
-						var facRegistry = facilityRegistry.convertToRegistryFormat(doc._id, fr, VDD_MOVE_FACILITY_MAP, ddDBUrl);
-						var moveHfId = facilityRegistry.getIdBy(facRegistry.identifiers, 'move');
+					var ddId = fr.facility.id.split(' ').join('-');
+					if (!processed[ddId] && VDD_MOVE_FACILITY_MAP[ddId]) {
+						var moveHfId = VDD_MOVE_FACILITY_MAP[ddId];
 						allocationByFacility[moveHfId] = allocationMod.collateAllocation(fr.packedProduct, productTypeMap);
 						processed[ddId] = true;
 					}
@@ -70,7 +70,6 @@ function extractInfo(resp) {
 
 	var facilityAllocations = fixture.toAllocation('allocation.json');
 	allocationByFacility = fixture.getAllocations(facilityAllocations, allocationByFacility);
-
 
 	return allocationByFacility;
 }
@@ -137,6 +136,8 @@ function UpdateAllocation(allocationByFacility) {
 								fac.allocation = allocation;
 								appConfigs.push(appCfg);
 								facilities.push(fac);
+							}else{
+								logger.info('Allocation is empty for ', facId);
 							}
 						} else {
 							logger.info('No Allocation for ', facId);
